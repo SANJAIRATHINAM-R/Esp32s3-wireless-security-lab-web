@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>ESP32-S3 Wireless Security Lab — DragonByte</title>
+<meta name="description" content="A hands-on, ethics-first learning lab for ESP32-S3 wireless security: hardware, GhostESP firmware, Wi-Fi/BLE discovery, and captive-portal concepts, built by DragonByte." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐉</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="nav-inner">
+    <a href="#top" class="brand">
+      <span class="brand-mark">DB</span>
+      <span class="brand-text">
+        <strong>DragonByte</strong>
+        <span>Learn. Hack. Defend. Grow.</span>
+      </span>
+    </a>
+    <nav class="primary" id="primary-nav">
+      <a href="#hardware">Hardware</a>
+      <a href="#firmware">Firmware</a>
+      <a href="#wifi-ble">Wi-Fi &amp; BLE</a>
+      <a href="#captive-portal">Captive Portal</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#docs">Docs</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+      <a href="#ethics">Ethics</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-ghost btn-sm" href="https://github.com/" target="_blank" rel="noopener">GitHub ↗</a>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="hero-eyebrow"><span class="dot-live"></span> Lab status: active · ESP32-S3 · GhostESP</div>
+        <h1>A wireless security lab you can hold in one hand.<span class="accent"> ESP32-S3 + GhostESP.</span></h1>
+        <p class="hero-lead">
+          DragonByte's open learning project for understanding how Wi-Fi and Bluetooth Low Energy
+          actually behave — discovery, signal behavior, and captive-portal concepts — on real
+          ESP32-S3 hardware, in networks you own or are explicitly authorized to test.
+        </p>
+        <div class="hero-actions">
+          <a href="#firmware" class="btn btn-signal">Start the setup guide</a>
+          <a href="docs/01-introduction.md" class="btn btn-ghost">Read the docs</a>
+        </div>
+        <div class="hero-meta">
+          <div><strong>Dual-core · 240MHz</strong>Xtensa LX7, native USB</div>
+          <div><strong>GhostESP</strong>Open-source ESP32 firmware</div>
+          <div><strong>9 guides</strong>Beginner to lab write-up</div>
+        </div>
+      </div>
+
+      <div class="device-panel">
+        <div class="frame-bar">
+          <span>images/01-esp32s3-board.jpeg</span>
+          <span class="status-ok">● connected</span>
+        </div>
+        <img src="images/01-esp32s3-board.jpeg" alt="ESP32-S3 development board connected over USB-C, booted with onboard status LEDs lit" />
+        <div class="device-readout">
+          <div class="row"><span>chip</span><span>ESP32-S3 (dual-core, 240 MHz)</span></div>
+          <div class="row"><span>usb</span><span>Native USB · no driver required</span></div>
+          <div class="row"><span>firmware target</span><span>GhostESP</span></div>
+          <div class="row"><span>flash</span><span>DIO · 80MHz · 4MB · 115200 baud</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HARDWARE -->
+  <section id="hardware">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">hardware</div>
+        <h2>Know your board before you flash it.</h2>
+        <p>The ESP32-S3 ships in dozens of board layouts. Before touching firmware, confirm the chip, the USB interface, and how it enters bootloader mode — guessing wrong is the most common cause of a failed flash.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <span class="idx">chip</span>
+          <h3>Dual-core Xtensa LX7</h3>
+          <p>240MHz dual-core with native Wi-Fi (2.4GHz) and Bluetooth LE. This is what GhostESP's scanning and advertising features run on.</p>
+        </div>
+        <div class="card">
+          <span class="idx">usb</span>
+          <h3>Native USB vs. USB-UART bridge</h3>
+          <p>Boards with a native USB port need no driver and enter download mode automatically. Boards wired through a CH340/CP210x bridge need that driver and a manual BOOT+RESET sequence.</p>
+        </div>
+        <div class="card">
+          <span class="idx">power</span>
+          <h3>Power and data cable</h3>
+          <p>Use a cable that carries data, not a charge-only cable. If the board enumerates as a serial port, the cable is fine — if nothing shows up, try a different one first.</p>
+        </div>
+      </div>
+      <p style="margin-top:28px;"><a href="docs/02-hardware.md">Full hardware identification guide →</a></p>
+    </div>
+  </section>
+
+  <!-- FIRMWARE -->
+  <section id="firmware">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">firmware</div>
+        <h2>Installing GhostESP, step by step.</h2>
+        <p>GhostESP is flashed through the official browser-based flasher. These are the exact steps we followed and verified on our own ESP32-S3 hardware — not a hypothetical walkthrough.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div>
+            <h4>Open the official flasher and connect</h4>
+            <p>Visit the GhostESP flasher in a WebSerial/WebUSB-capable browser (Chrome or Edge) and connect your board over USB.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div>
+            <h4>Select your chip</h4>
+            <p>Choose "Install for the first time" and pick <strong>ESP32-S3</strong> from the chip list, or filter by board brand if your exact board is listed.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div>
+            <h4>Enter bootloader mode</h4>
+            <p>Native-USB boards enter download mode automatically. Bridge-chip boards need BOOT held, RESET pressed, then BOOT released before the flasher can connect.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div>
+            <h4>Flash and verify</h4>
+            <p>Review the summary (application, bootloader, and partition table offsets), then flash. A clean run ends with the board rebooting into GhostESP automatically.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px;">
+        <figure style="margin:0;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--panel);">
+          <img src="images/04-ghostesp-board-selection-esp32s3.png" alt="GhostESP flasher chip selection screen with ESP32-S3 selected" style="height:220px;object-fit:cover;" />
+        </figure>
+        <figure style="margin:0;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--panel);">
+          <img src="images/05-ghostesp-flashing-in-progress.png" alt="GhostESP flasher showing flash progress with application, bootloader, and partition table offsets" style="height:220px;object-fit:cover;" />
+        </figure>
+      </div>
+
+      <p style="margin-top:28px;"><a href="docs/03-firmware-setup.md">Full firmware install &amp; troubleshooting guide →</a></p>
+    </div>
+  </section>
+
+  <!-- WIFI + BLE -->
+  <section id="wifi-ble">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">wi-fi &amp; ble</div>
+        <h2>What discovery actually shows you.</h2>
+        <p>Scanning reads what's already being broadcast — SSIDs, channels, signal strength, encryption type on the Wi-Fi side; advertising packets, device names, and service UUIDs on BLE. None of this requires joining a network or pairing a device.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Wi-Fi discovery</h3>
+          <p>Passive scans surface nearby SSIDs, the channel and band they're on, approximate signal strength (RSSI), and whether a network advertises open, WPA2, or WPA3 security — all from management frames every AP already sends.</p>
+        </div>
+        <div class="card">
+          <h3>BLE discovery</h3>
+          <p>BLE devices periodically advertise — a device name, manufacturer data, and service UUIDs. Scanning catches these broadcasts. It does not establish a connection or read data the device isn't already advertising.</p>
+        </div>
+      </div>
+      <p style="margin-top:28px;">
+        <a href="docs/04-wifi-testing.md">Wi-Fi testing guide →</a> &nbsp;·&nbsp;
+        <a href="docs/05-bluetooth-testing.md">BLE testing guide →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- CAPTIVE PORTAL -->
+  <section id="captive-portal">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">captive portal concepts</div>
+        <h2>How a captive portal works — without collecting anything.</h2>
+        <p>A captive portal is the landing page your phone shows when you join hotel or airport Wi-Fi. This lab demonstrates the mechanism locally: a labeled page served on your own device, on your own network, with no login fields, no data capture, and nothing sent anywhere.</p>
+      </div>
+      <div class="portal-demo">
+        <div>
+          <span class="label-chip">⚠ local demo only — no data is collected</span>
+          <h3 style="font-size:17px;color:var(--text);margin-bottom:10px;">Why we don't ship a working credential form</h3>
+          <p style="font-size:14.5px;">
+            A realistic-looking login page that captures what people type is a phishing tool,
+            regardless of the hardware it runs on. This project deliberately leaves that
+            capability out. The demo below only renders a static layout — submitting it does
+            nothing but show you this message.
+          </p>
+        </div>
+        <div>
+          <form id="portal-demo-form" style="border:1px solid var(--border);border-radius:var(--radius);padding:18px;background:var(--bg-raised);">
+            <div style="font-family:var(--mono);font-size:11.5px;color:var(--text-faint);margin-bottom:10px;">demo-portal.local — static preview</div>
+            <label style="display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;">Network name</label>
+            <input type="text" value="DragonByte-Lab-Demo" disabled style="width:100%;padding:10px;background:var(--panel-alt);border:1px solid var(--border);color:var(--text-faint);border-radius:var(--radius);margin-bottom:12px;" />
+            <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;">Preview continue action</button>
+          </form>
+          <p id="portal-demo-output" hidden style="font-size:12.5px;margin-top:10px;color:var(--text-faint);"></p>
+        </div>
+      </div>
+      <p style="margin-top:28px;"><a href="docs/06-captive-portal-lab.md">Full captive-portal lab guide →</a></p>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">gallery</div>
+        <h2>From our own bench.</h2>
+        <p>Real photos and screenshots captured while building this lab — not stock images, not staged results.</p>
+      </div>
+      <div class="gallery">
+        <figure>
+          <img src="images/01-esp32s3-board.jpeg" alt="ESP32-S3 board powered on over USB" />
+          <figcaption>ESP32-S3 board, powered and connected</figcaption>
+        </figure>
+        <figure>
+          <img src="images/02-ghostesp-platform-homepage.png" alt="GhostESP project homepage" />
+          <figcaption>GhostESP — open-source ESP32 platform</figcaption>
+        </figure>
+        <figure>
+          <img src="images/03-ghostesp-flasher-connect-step.png" alt="GhostESP flasher connect step" />
+          <figcaption>Flasher · step 1 — connect</figcaption>
+        </figure>
+        <figure>
+          <img src="images/04-ghostesp-board-selection-esp32s3.png" alt="GhostESP flasher with ESP32-S3 selected" />
+          <figcaption>Flasher · chip selection (ESP32-S3)</figcaption>
+        </figure>
+        <figure>
+          <img src="images/05-ghostesp-flashing-in-progress.png" alt="GhostESP flasher mid-flash with progress bar" />
+          <figcaption>Flasher · step 3 — flashing</figcaption>
+        </figure>
+        <figure>
+          <img src="images/06-ghostesp-companion-app-release.png" alt="GhostESP companion app release assets on GitHub" />
+          <figcaption>Companion app · release assets</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCS + BLOG -->
+  <section id="docs">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">documentation</div>
+        <h2>Nine guides, start to finish.</h2>
+        <p>Every guide below exists as a real Markdown file in <code>/docs</code>. They're written to be followed in order, but each one stands alone.</p>
+      </div>
+      <div class="doc-list">
+        <a class="doc-row" href="docs/01-introduction.md"><div><div class="doc-name">01 · Introduction</div><div class="doc-desc">What this lab is, and what it isn't</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/02-hardware.md"><div><div class="doc-name">02 · Hardware</div><div class="doc-desc">Identifying your ESP32-S3 and its USB interface</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/03-firmware-setup.md"><div><div class="doc-name">03 · Firmware setup</div><div class="doc-desc">Installing GhostESP and recovering from common errors</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/04-wifi-testing.md"><div><div class="doc-name">04 · Wi-Fi testing</div><div class="doc-desc">SSIDs, channels, signal strength, security indicators</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/05-bluetooth-testing.md"><div><div class="doc-name">05 · Bluetooth testing</div><div class="doc-desc">BLE advertisements, scanning, device visibility</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/06-captive-portal-lab.md"><div><div class="doc-name">06 · Captive portal lab</div><div class="doc-desc">The mechanism, demonstrated safely and locally</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/07-mobile-testing.md"><div><div class="doc-name">07 · Mobile testing</div><div class="doc-desc">Testing with your own Android and iOS devices</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/08-results.md"><div><div class="doc-name">08 · Results</div><div class="doc-desc">What we actually observed, firmware version, limitations</div></div><span class="doc-arrow">→</span></a>
+        <a class="doc-row" href="docs/09-ethical-use.md"><div><div class="doc-name">09 · Ethical use</div><div class="doc-desc">Scope, consent, and the lines we don't cross</div></div><span class="doc-arrow">→</span></a>
+      </div>
+      <p style="margin-top:22px;"><a href="blog/complete-guide.md">Read the full write-up on the blog →</a></p>
+    </div>
+  </section>
+
+  <!-- TROUBLESHOOTING -->
+  <section id="troubleshooting">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">troubleshooting</div>
+        <h2>When the board won't cooperate.</h2>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Board not detected over USB</h3>
+          <p>Swap to a known-good data cable, try a different USB port (prefer USB-A on a hub or direct on a laptop), and confirm the board appears in your OS's device list before opening the flasher.</p>
+        </div>
+        <div class="card">
+          <h3>Flasher can't enter bootloader mode</h3>
+          <p>On bridge-chip boards: hold BOOT, press and release RESET while still holding BOOT, then release BOOT. Native-USB ESP32-S3 boards should not need this — if they do, check you selected the right port.</p>
+        </div>
+        <div class="card">
+          <h3>Flash completes but the board won't boot</h3>
+          <p>Re-run with "erase all flash before programming" enabled to clear partial writes, then flash again at the default baud rate before trying a higher one.</p>
+        </div>
+        <div class="card">
+          <h3>No networks or devices show up when scanning</h3>
+          <p>Confirm the firmware actually booted into GhostESP (check serial output), and that you're testing in a location with networks/devices actually in range.</p>
+        </div>
+      </div>
+      <p style="margin-top:28px;"><a href="docs/03-firmware-setup.md#troubleshooting">Full troubleshooting reference →</a></p>
+    </div>
+  </section>
+
+  <!-- ETHICS / DISCLAIMER -->
+  <section id="ethics">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">ethical use</div>
+        <h2>Scope matters more than capability.</h2>
+      </div>
+      <div class="disclaimer">
+        <h3>Read this before you power on the board</h3>
+        <ul>
+          <li>Only scan, test, or demonstrate on networks and devices you own, or have explicit written authorization to test.</li>
+          <li>This project does not include credential harvesting, deceptive copies of real login pages, unauthorized deauthentication, private-traffic interception, or hidden data collection — and never will.</li>
+          <li>The captive-portal material here teaches the concept with a clearly labeled, non-collecting local demo — not a working phishing page.</li>
+          <li>Wireless scanning laws and acceptable-use policies vary by country, network, and employer. You're responsible for knowing and following the rules that apply to you.</li>
+          <li>Results in this repository reflect what we actually tested on our own hardware. Where something is untested, the docs say so explicitly.</li>
+        </ul>
+      </div>
+      <p style="margin-top:22px;"><a href="docs/09-ethical-use.md">Full ethical-use policy →</a></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>DragonByte</h4>
+        <p style="max-width:40ch;">Learn. Hack. Defend. Grow. A community building hands-on, responsible cybersecurity education — one lab at a time.</p>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <ul>
+          <li><a href="docs/01-introduction.md">Documentation</a></li>
+          <li><a href="blog/complete-guide.md">Blog</a></li>
+          <li><a href="CONTRIBUTING.md">Contributing</a></li>
+          <li><a href="LICENSE">License</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://github.com/" target="_blank" rel="noopener">GitHub ↗</a></li>
+          <li><a href="#top">DragonByte community ↗</a></li>
+          <li><a href="docs/09-ethical-use.md">Ethical use policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year">2026</span> DragonByte. Open source, MIT licensed.</span>
+      <span>Built for authorized lab testing only.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
